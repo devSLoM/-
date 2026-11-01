@@ -1,0 +1,73 @@
+-- Nova Safe Helper V3 - BQM Streets Edition
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local StarterGui = game:GetService("StarterGui")
+
+local LocalPlayer = Players.LocalPlayer
+local ESP_Enabled = false
+local Speed_Enabled = false
+
+-- تنبيه للمستخدم
+local function notify(msg)
+    StarterGui:SetCore("SendNotification", {Title = "Nova Script", Text = msg, Duration = 3})
+end
+
+-- نظام الـ ESP الآمن
+local function updateESP()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local char = player.Character
+            if ESP_Enabled then
+                if not char:FindFirstChild("NovaHighlight") then
+                    local h = Instance.new("Highlight")
+                    h.Name = "NovaHighlight"
+                    h.Adornee = char
+                    h.FillColor = Color3.fromRGB(255, 255, 255)
+                    h.Parent = char
+                end
+            else
+                if char:FindFirstChild("NovaHighlight") then
+                    char.NovaHighlight:Destroy()
+                end
+            end
+        end
+    end
+end
+
+-- التحكم بالسرعة بشكل آمن
+RunService.Heartbeat:Connect(function()
+    pcall(function()
+        if Speed_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            local hum = LocalPlayer.Character.Humanoid
+            if hum.WalkSpeed < 22 then
+                hum.WalkSpeed = 22
+            end
+        end
+    end)
+end)
+
+-- تحديث الـ ESP في لوب خفيف
+task.spawn(function()
+    while task.wait(1) do
+        pcall(updateESP)
+    end
+end)
+
+-- التحكم بالكيبورد
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.E then
+        ESP_Enabled = not ESP_Enabled
+        notify(ESP_Enabled and "ESP Enabled" or "ESP Disabled")
+    elseif input.KeyCode == Enum.KeyCode.R then
+        Speed_Enabled = not Speed_Enabled
+        notify(Speed_Enabled and "Speed Enabled (Safe)" or "Speed Disabled")
+        if not Speed_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.WalkSpeed = 16
+        end
+    end
+end)
+
+notify("Nova Script Loaded - BQM Streets")
